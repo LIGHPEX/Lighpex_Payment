@@ -1,0 +1,222 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Payment Form
+    style.
+      :root {
+        --primary-color: #8a83e1;
+        --white: #ffffff;
+        --text-color: #333;
+        --border-color: #f1f1f1;
+        --focus-color: #8a83e1;
+        --radius: 8px;
+        --text-primary: 1rem;
+        --text-secondary: 1.2rem;
+        --max-width: 600px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background-color: #f5f5f5;
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      #container {
+        background-color: var(--white);
+        border-radius: var(--radius);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        max-width: var(--max-width);
+        width: 100%;
+        padding: 20px;
+        text-align: left;
+      }
+
+      #banner img {
+        width: 100%;
+        border-radius: var(--radius);
+      }
+
+      h1 {
+        font-size: var(--text-secondary);
+        color: var(--primary-color);
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      label {
+        font-size: var(--text-primary);
+        margin-bottom: 5px;
+        width: 25%;
+      }
+
+      input, select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius);
+        font-size: var(--text-primary);
+        transition: border-color 0.3s;
+      }
+
+      input:focus, select:focus {
+        border-color: var(--focus-color);
+        outline: none;
+        box-shadow: 0 0 8px rgba(138, 131, 225, 0.3);
+      }
+
+      input::placeholder {
+        color: #777;
+        font-size: var(--text-primary);
+      }
+
+      select {
+        appearance: none;
+        background-color: var(--white);
+        cursor: pointer;
+      }
+
+      #pay {
+        background-color: var(--primary-color);
+        color: var(--white);
+        font-size: var(--text-secondary);
+        padding: 12px;
+        border: none;
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      #pay:hover {
+        background-color: #776bdb;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        column-gap: 2px;
+      }
+
+      #price-label {
+        margin-top: 10px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: var(--primary-color);
+      }
+
+      @media (max-width: 768px) {
+        #container {
+          padding: 15px;
+        }
+
+        h1 {
+          font-size: 1.5rem;
+        }
+
+        .form-group {
+          display: flex;
+          flex-direction: column;
+          align-items: start;
+        }
+
+        label {
+          width: 100%;
+        }
+      }
+  body
+    #container
+      #banner
+        img(src="https://placehold.co/700x190" alt="Wikie Projects Internship Banner")
+      h1 Internship Payment Form
+      form#payment-form
+        .form-group
+          label(for="first-name") First Name:
+          input#first-name(type="text" name="first-name" required placeholder="Enter your first name" aria-label="First Name")
+        .form-group
+          label(for="last-name") Last Name:
+          input#last-name(type="text" name="last-name" required placeholder="Enter your last name" aria-label="Last Name")
+        .form-group
+          label(for="email") Email:
+          input#email(type="email" name="email" required placeholder="Enter your email" aria-label="Email")
+        .form-group
+          label(for="cohort") Cohort:
+          select#cohort(name="cohort" aria-label="Cohort")
+            option(value="") Select Your Cohort
+            option(value="digital-marketing" data-price="1") Digital Marketing
+            // Add other cohorts
+        #price-label Price: GHS
+          span#price 0
+        button#pay(type="button") Pay Now
+
+  script(src="https://js.paystack.co/v1/inline.js")
+  script.
+    // JavaScript for dynamic price update
+    document.getElementById('cohort').addEventListener('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
+      const price = selectedOption.getAttribute('data-price') || 0;
+      document.getElementById('price').textContent = price;
+    });
+
+    // Add functionality to the Pay button
+    document.getElementById('pay').addEventListener('click', function () {
+      const firstName = document.getElementById('first-name').value;
+      const lastName = document.getElementById('last-name').value;
+      const cohort = document.getElementById('cohort').value;
+      const price = document.getElementById('price').textContent;
+      const email = document.getElementById('email').value;
+
+      if (!firstName || !lastName || !cohort || !email) {
+        alert('Please fill all fields and select a cohort.');
+        return;
+      }
+
+      // alert('Proceeding to payment...');
+      // Paystack payment setup
+      var handler = PaystackPop.setup({
+        key: 'pk_test_2af69a95d2ab79569d542cfc0e7d186c7213eadc', // Replace with your Paystack public key
+        email: email, // Replace with user's email
+        amount: Number(price)*100, // Amount in pessewass
+        currency: 'GHS', // Currency
+        callback: function (response) {
+          // After payment
+          fetch('/verify-payment', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({reference: response.reference})
+          })
+                  .then(response => response.json())
+                  .then(data => {
+                    if (data.success === true) {
+                      alert('Payment verified!');
+                      window.location.href = '/payment-success'; // Redirect to success page
+                    } else {
+                      alert('Payment verification failed.');
+                    }
+                  });
+        },
+        onClose: function () {
+          alert('Payment process was canceled.');
+        }
+      });
+
+      handler.openIframe(); // Open the Paystack payment modal
+    });
