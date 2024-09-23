@@ -3,7 +3,8 @@ html(lang="en")
   head
     meta(charset="UTF-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    title Payment Form
+    title Wikie Internship Payment
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css")
     style.
       :root {
         --primary-color: #8a83e1;
@@ -145,8 +146,8 @@ html(lang="en")
   body
     #container
       #banner
-        img(src="https://placehold.co/700x190" alt="Wikie Projects Internship Banner")
-      h1 Internship Payment Form
+        img(src="https://snipboard.io/i0HXKz.jpg" style="object-fit:contain;object-position: center;" width="700px" height="150px" alt="Wikie Projects Internship Banner")
+      //h1 Internship
       form#payment-form
         .form-group
           label(for="first-name") First Name:
@@ -161,13 +162,15 @@ html(lang="en")
           label(for="cohort") Cohort:
           select#cohort(name="cohort" aria-label="Cohort")
             option(value="") Select Your Cohort
-            option(value="digital-marketing" data-price="1") Digital Marketing
+            option(value="digital-marketing" data-price="100") Digital Marketing
             // Add other cohorts
         #price-label Price: GHS
           span#price 0
         button#pay(type="button") Pay Now
 
   script(src="https://js.paystack.co/v1/inline.js")
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js")
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js")
   script.
     // JavaScript for dynamic price update
     document.getElementById('cohort').addEventListener('change', function () {
@@ -206,12 +209,16 @@ html(lang="en")
                   .then(response => response.json())
                   .then(data => {
                     if (data.success === true) {
-                      alert('Payment verified!');
-                      window.location.href = '/payment-success'; // Redirect to success page
+                      toastr.success('Payment verified successfully!', 'Success');
                     } else {
-                      alert('Payment verification failed.');
+                      toastr.error('Payment verification failed.', 'Error');
                     }
+                  })
+                  .catch(error => {
+                    toastr.error('An error occurred during payment verification.', 'Error');
+                    console.error('Error:', error);
                   });
+
         },
         onClose: function () {
           alert('Payment process was canceled.');
