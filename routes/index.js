@@ -13,7 +13,7 @@ router.post('/verify-payment', async (req, res) => {
 
     // Verify payment using Paystack API
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
-        headers: {Authorization: 'Bearer sk_test_2f27c0426bee37fc80d11158e714bf43a545612a'}
+        headers: {Authorization: 'Bearer sk_live_6522150a397f93b610a00691dbb125785c258118'}
     })
 
     const data = response.data;
