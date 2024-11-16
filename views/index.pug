@@ -2,7 +2,7 @@ doctype html
 html(lang="en")
   head
     meta(charset="UTF-8")
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
     title Salem Aid Foundation Support
     link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css")
     style.
@@ -66,10 +66,9 @@ html(lang="en")
       label {
         font-size: var(--text-primary);
         margin-bottom: 5px;
-        width: 25%;
       }
 
-      input, select {
+      input, select, textarea {
         width: 100%;
         padding: 12px;
         border: 2px solid var(--border-color);
@@ -78,21 +77,15 @@ html(lang="en")
         transition: border-color 0.3s;
       }
 
-      input:focus, select:focus {
+      input:focus, select:focus, textarea:focus {
         border-color: var(--focus-color);
         outline: none;
         box-shadow: 0 0 8px rgba(138, 131, 225, 0.3);
       }
 
-      input::placeholder {
+      input::placeholder, textarea::placeholder {
         color: #777;
         font-size: var(--text-primary);
-      }
-
-      select {
-        appearance: none;
-        background-color: var(--white);
-        cursor: pointer;
       }
 
       #pay {
@@ -110,11 +103,8 @@ html(lang="en")
         background-color: #776bdb;
       }
 
-      .form-group {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        column-gap: 2px;
+      #amount-container {
+        display: none;
       }
 
       #price-label {
@@ -156,22 +146,12 @@ html(lang="en")
         h1 {
           font-size: 1.5rem;
         }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          align-items: start;
-        }
-
-        label {
-          width: 100%;
-        }
       }
-   body
+  body
     #container
       #banner
         .skeleton#imageSkeleton
-        img#actualImage(src="your-new-banner.jpg" style="object-fit:contain; object-position:center; display:none;" width="700px" height="150px" alt="Salem Aid Foundation Banner")
+        img#actualImage(src="your-new-banner.jpg" style="object-fit:contain; object-position:center; display:none;" alt="Salem Aid Foundation Banner")
       h1 Support Happy Home Family Orphanage
       form#payment-form
         .form-group
@@ -189,50 +169,64 @@ html(lang="en")
             option(value="") Select Donation Type
             option(value="cash") Cash
             option(value="kind") Kind
-        .form-group
+        .form-group#amount-container
           label(for="amount") Donation Amount (GHS):
-          input#amount(type="number" name="amount" placeholder="Enter the donation amount in GHS" required)
+          input#amount(type="number" name="amount" placeholder="Enter the donation amount in GHS" aria-label="Donation Amount")
         button#pay(type="button") Donate Now
-  script(src="https://js.paystack.co/v1/inline.js")
-  script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js")
-  script(src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js")
-  script.
-    // JavaScript for image load and donation functionality
-    document.addEventListener('DOMContentLoaded', function () {
-      const img = document.getElementById('actualImage');
-      img.onload = function () {
-        document.getElementById('imageSkeleton').style.display = 'none';
-        img.style.display = 'block';
-      };
-      img.src = img.src; // Trigger image load
-    });
+    script(src="https://js.paystack.co/v1/inline.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js")
+    script.
+      document.addEventListener('DOMContentLoaded', function () {
+        const img = document.getElementById('actualImage');
+        img.onload = function () {
+          document.getElementById('imageSkeleton').style.display = 'none';
+          img.style.display = 'block';
+        };
+        img.src = img.src;
 
-    document.getElementById('pay').addEventListener('click', function () {
-      const firstName = document.getElementById('first-name').value;
-      const lastName = document.getElementById('last-name').value;
-      const donationType = document.getElementById('donation-type').value;
-      const amount = document.getElementById('amount').value;
-      const email = document.getElementById('email').value;
-
-      if (!firstName || !lastName || !donationType || !email || (donationType === 'cash' && !amount)) {
-        alert('Please fill all fields.');
-        return;
-      }
-
-      const finalAmount = donationType === 'cash' ? Number(amount) * 100 : 0;
-
-      var handler = PaystackPop.setup({
-        key: 'pk_live_48206cc2ff2993966efe8139f23c6d2e35554017', // Replace with your key
-        email: email,
-        amount: finalAmount, 
-        currency: 'GHS',
-        callback: function (response) {
-          toastr.success('Thank you for your donation!', 'Success');
-        },
-        onClose: function () {
-          alert('Donation process was canceled.');
-        }
+        const donationType = document.getElementById('donation-type');
+        const amountContainer = document.getElementById('amount-container');
+        donationType.addEventListener('change', function () {
+          if (donationType.value === 'cash') {
+            amountContainer.style.display = 'block';
+          } else {
+            amountContainer.style.display = 'none';
+          }
+        });
       });
 
-      handler.openIframe();
-    });
+      document.getElementById('pay').addEventListener('click', function () {
+        const firstName = document.getElementById('first-name').value.trim();
+        const lastName = document.getElementById('last-name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const donationType = document.getElementById('donation-type').value;
+        const amount = document.getElementById('amount').value.trim();
+
+        if (!firstName || !lastName || !email || !donationType || (donationType === 'cash' && (!amount || amount <= 0))) {
+          toastr.error('Please fill all required fields correctly.', 'Error');
+          return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          toastr.error('Invalid email address.', 'Error');
+          return;
+        }
+
+        const finalAmount = donationType === 'cash' ? Number(amount) * 100 : 0;
+
+        const handler = PaystackPop.setup({
+          key: 'pk_live_48206cc2ff2993966efe8139f23c6d2e35554017', // Replace with your live/public key
+          email: email,
+          amount: finalAmount,
+          currency: 'GHS',
+          callback: function () {
+            toastr.success('Thank you for your donation!', 'Success');
+          },
+          onClose: function () {
+            toastr.warning('Donation process was canceled.', 'Cancelled');
+          }
+        });
+
+        handler.openIframe();
+      });
