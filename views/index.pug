@@ -3,7 +3,7 @@ html(lang="en")
   head
     meta(charset="UTF-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    title Wikie Internship Payment
+    title Salem Aid Foundation Support
     link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css")
     style.
       :root {
@@ -167,12 +167,12 @@ html(lang="en")
           width: 100%;
         }
       }
-  body
+   body
     #container
       #banner
         .skeleton#imageSkeleton
-        img#actualImage(src="https://snipboard.io/i0HXKz.jpg" style="object-fit:contain;object-position: center; display: none;" width="700px" height="150px" alt="Wikie Projects Internship Banner")
-      //h1 Internship
+        img#actualImage(src="your-new-banner.jpg" style="object-fit:contain; object-position:center; display:none;" width="700px" height="150px" alt="Salem Aid Foundation Banner")
+      h1 Support Happy Home Family Orphanage
       form#payment-form
         .form-group
           label(for="first-name") First Name:
@@ -184,20 +184,20 @@ html(lang="en")
           label(for="email") Email:
           input#email(type="email" name="email" required placeholder="Enter your email" aria-label="Email")
         .form-group
-          label(for="cohort") Cohort:
-          select#cohort(name="cohort" aria-label="Cohort")
-            option(value="") Select Your Cohort
-            option(value="digital-marketing" data-price="100") Digital Marketing
-            // Add other cohorts
-        #price-label Price: GHS
-          span#price 0
-        button#pay(type="button") Pay Now
-
+          label(for="donation-type") Donation Type:
+          select#donation-type(name="donation-type" required)
+            option(value="") Select Donation Type
+            option(value="cash") Cash
+            option(value="kind") Kind
+        .form-group
+          label(for="amount") Donation Amount (GHS):
+          input#amount(type="number" name="amount" placeholder="Enter the donation amount in GHS" required)
+        button#pay(type="button") Donate Now
   script(src="https://js.paystack.co/v1/inline.js")
   script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js")
   script(src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js")
   script.
-    // JavaScript for dynamic price update
+    // JavaScript for image load and donation functionality
     document.addEventListener('DOMContentLoaded', function () {
       const img = document.getElementById('actualImage');
       img.onload = function () {
@@ -206,57 +206,33 @@ html(lang="en")
       };
       img.src = img.src; // Trigger image load
     });
-    document.getElementById('cohort').addEventListener('change', function () {
-      const selectedOption = this.options[this.selectedIndex];
-      const price = selectedOption.getAttribute('data-price') || 0;
-      document.getElementById('price').textContent = price;
-    });
 
-    // Add functionality to the Pay button
     document.getElementById('pay').addEventListener('click', function () {
       const firstName = document.getElementById('first-name').value;
       const lastName = document.getElementById('last-name').value;
-      const cohort = document.getElementById('cohort').value;
-      const price = document.getElementById('price').textContent;
+      const donationType = document.getElementById('donation-type').value;
+      const amount = document.getElementById('amount').value;
       const email = document.getElementById('email').value;
 
-      if (!firstName || !lastName || !cohort || !email) {
-        alert('Please fill all fields and select a cohort.');
+      if (!firstName || !lastName || !donationType || !email || (donationType === 'cash' && !amount)) {
+        alert('Please fill all fields.');
         return;
       }
 
-      // alert('Proceeding to payment...');
-      // Paystack payment setup
-      var handler = PaystackPop.setup({
-        key: 'pk_live_48206cc2ff2993966efe8139f23c6d2e35554017', // Replace with your Paystack public key
-        email: email, // Replace with user's email
-        amount: Number(price)*100, // Amount in pessewass
-        currency: 'GHS', // Currency
-        callback: function (response) {
-          // After payment
-          fetch('/verify-payment', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({reference: response.reference})
-          })
-                  .then(response => response.json())
-                  .then(data => {
-                    if (data.success === true) {
-                      toastr.success('Payment verified successfully!', 'Success');
-                    } else {
-                      toastr.error('Payment verification failed.', 'Error');
-                    }
-                  })
-                  .catch(error => {
-                    toastr.error('An error occurred during payment verification.', 'Error');
-                    console.error('Error:', error);
-                  });
+      const finalAmount = donationType === 'cash' ? Number(amount) * 100 : 0;
 
+      var handler = PaystackPop.setup({
+        key: 'pk_live_48206cc2ff2993966efe8139f23c6d2e35554017', // Replace with your key
+        email: email,
+        amount: finalAmount, 
+        currency: 'GHS',
+        callback: function (response) {
+          toastr.success('Thank you for your donation!', 'Success');
         },
         onClose: function () {
-          alert('Payment process was canceled.');
+          alert('Donation process was canceled.');
         }
       });
 
-      handler.openIframe(); // Open the Paystack payment modal
+      handler.openIframe();
     });
